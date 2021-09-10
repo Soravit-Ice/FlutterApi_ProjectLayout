@@ -4,6 +4,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:layout/pages/detail.dart';
 
+import 'package:http/http.dart' as http;
+import 'dart:async';
+
+
 class HomePage extends StatefulWidget {
   const HomePage({ Key? key }) : super(key: key);
 
@@ -20,20 +24,29 @@ class _HomePageState extends State<HomePage> {
       ),
       body: Container(
         padding: const EdgeInsets.all(20),
-        child: FutureBuilder(builder: (context,snapshot) {
-          var data = json.decode(snapshot.data.toString());
-          return ListView.builder(itemBuilder: (BuildContext context ,int index)
+        child: FutureBuilder(builder: (context, AsyncSnapshot snapshot) {
+         // var data = json.decode(snapshot.data.toString());
+
+         if(snapshot.hasData){
+           return ListView.builder(itemBuilder: (BuildContext context ,int index)
           {
-            return MyBox(data[index]['title'], data[index]['detail_sub'] , data[index]['url_image'] , data[index]['detail']);
+            return MyBox(snapshot.data[index]['title'], snapshot.data[index]['detail_sub'] , snapshot.data[index]['url_image'] , snapshot.data[index]['detail']);
             
           },
-          itemCount: data.length,
+          itemCount: snapshot.data.length,
           );
+         }else{
+           return Center(
+             child: CircularProgressIndicator(),
+           );
+         }
+          
 
 
         },
         
-        future: DefaultAssetBundle.of(context).loadString('data/data.json'),
+        future: getData(),
+        // load json from local future: DefaultAssetBundle.of(context).loadString('data/data.json'), 
         
         )
         
@@ -81,5 +94,17 @@ class _HomePageState extends State<HomePage> {
       ),
     );
 
+  }
+
+
+  Future getData() async{
+    // https://raw.githubusercontent.com/Soravit-Ice/FlutterApi_ProjectLayout/main/data.json
+     var url = Uri.http('raw.githubusercontent.com', '/Soravit-Ice/FlutterApi_ProjectLayout/main/data.json');
+     var response = await http.get(url);
+
+     var result = json.decode(response.body);
+
+     print(result);
+     return result;
   }
 }
